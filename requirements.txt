@@ -14,4 +14,3 @@ fastapi
 uvicorn[standard]
 google-cloud-vision
 google-cloud-aiplatform
-numpy
