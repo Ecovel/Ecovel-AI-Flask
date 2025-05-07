@@ -1,0 +1,16 @@
+Flask
+flask-cors
+tensorflow
+pillow
+numpy
+deepface
+google-generativeai
+gunicorn
+werkzeug
+requests
+tf-keras
+python-dotenv
+fastapi
+uvicorn[standard]
+google-cloud-vision
+google-cloud-aiplatform
