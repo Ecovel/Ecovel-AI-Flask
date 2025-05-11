@@ -1,9 +1,9 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from flask.json.provider import DefaultJSONProvider
 
 from app.routes.profile import profile_bp
-#from app.routes.mission import mission_bp
+from app.routes.mission import mission_bp
 
 # 커스텀 JSON Provider 설정 (한글 깨짐 방지 + 키 순서 유지)
 class CustomJSONProvider(DefaultJSONProvider):
@@ -25,15 +25,17 @@ def create_app():
             "status": "OK",
             "message": "Ecovel-AI-ML API is running"
         }), 200
-
+    
+    # 이미지 정적 서빙 라우터 추가 
+    @app.route("/uploads/faces/<user_id>/<filename>")
+    def serve_uploaded_image(user_id, filename):
+        return send_from_directory(f"uploads/faces/{user_id}", filename)
+    
     # 프로필 블루프린트 등록 (/users/profile-image)
     app.register_blueprint(profile_bp, url_prefix="/users")
 
     # 미션 블루프린트 등록 (/ai/...)
-    #app.register_blueprint(mission_bp, url_prefix="/ai")
-
-    # print("등록된 라우터 목록: ")
-    # print(app.url_map)
+    app.register_blueprint(mission_bp, url_prefix="/ai")
 
     return app
 
