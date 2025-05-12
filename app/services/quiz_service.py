@@ -25,8 +25,21 @@ def generate_quiz():
 def get_today_quiz():
     today = str(date.today())
     if today not in quiz_cache:
-        quiz_cache[today] = generate_quiz()
+        quiz = generate_quiz()
+
+        # Check if all required keys exist to avoid KeyError
+        if not all(k in quiz for k in ("question", "answer", "explanation")):
+            print("Missing keys in Gemini response:", quiz)
+            quiz = {
+                "question": " Failed to load quiz.",
+                "answer": "true",
+                "explanation": "Gemini response parsing failed."
+            }
+
+        quiz_cache[today] = quiz
+
     return quiz_cache[today]
+
 
 def check_answer(user_answer: str):
     quiz = get_today_quiz()
