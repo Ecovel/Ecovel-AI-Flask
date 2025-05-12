@@ -1,31 +1,37 @@
 import google.generativeai as genai
+from datetime import date
 import os
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-1.5-flash")
+quiz_cache = {}  # { "YYYY-MM-DD": {question, answer, explanation} }
 
 def generate_quiz():
     prompt = (
         "Create a simple true/false (O/X) quiz about environmental sustainability.\n"
-        "The quiz should be short, specific, and not too obvious.\n"
-        "Avoid generic statements like 'Water is important' or 'Plastic is bad'.\n"
-        "Use basic but factual environmental knowledge that requires a bit of thought.\n"
-        "The question must be under 15 words.\n"
-        "The explanation must be 1 short sentence only (no more than 15 words).\n"
-        "Respond in the following format only:\n"
-        "Question: ...\n"
-        "Answer: true or false\n"
-        "Explanation: ..."
+        "The question must be under 15 words. Explanation under 15 words.\n"
+        "Format:\nQuestion: ...\nAnswer: true/false\nExplanation: ..."
     )
-
-    response = model.generate_content(prompt)
+    response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt)
     lines = response.text.strip().split("\n")
     data = {}
     for line in lines:
         if line.startswith("Question:"):
             data["question"] = line.replace("Question:", "").strip()
         elif line.startswith("Answer:"):
-            data["answer"] = line.replace("Answer:", "").strip().lower()  # "true" or "false"
+            data["answer"] = line.replace("Answer:", "").strip().lower()
         elif line.startswith("Explanation:"):
             data["explanation"] = line.replace("Explanation:", "").strip()
     return data
+
+def get_today_quiz():
+    today = str(date.today())
+    if today not in quiz_cache:
+        quiz_cache[today] = generate_quiz()
+    return quiz_cache[today]
+
+def check_answer(user_answer: str):
+    quiz = get_today_quiz()
+    is_correct = user_answer.strip().lower() == quiz["answer"]
+    return {
+        "correct": is_correct,
+        "explanation": quiz["explanation"]
+    }
