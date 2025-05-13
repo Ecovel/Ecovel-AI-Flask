@@ -54,7 +54,8 @@ def upload_profile_image():
     payload = {
         "httpStatus": "OK",
         "success": True,
-        "result": f"http://34.64.210.130:5000/uploads/faces/{user_id}/face.jpg", 
+        "result": f"http://34.47.125.178:5000/uploads/faces/{user_id}/face.jpg",
+
         "error": None
     }
     return Response(
@@ -87,7 +88,8 @@ def get_profile_image():
     payload = {
         "httpStatus": "OK",
         "success": True,
-        "result": f"http://34.64.210.130:5000/uploads/faces/{user_id}/face.jpg",
+        "result": f"http://34.47.125.178:5000/uploads/faces/{user_id}/face.jpg"
+,
         "error": None
     }
     return Response(
