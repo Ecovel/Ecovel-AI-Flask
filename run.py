@@ -25,7 +25,8 @@ def create_app():
     app.json = CustomJSONProvider(app)
     app.config["JSON_SORT_KEYS"] = False
     
-    CORS(app)
+    CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+
 
     # ✅ Gemini 인증 안전하게 분기 처리
     cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
