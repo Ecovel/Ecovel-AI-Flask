@@ -1,38 +1,45 @@
 import google.generativeai as genai
-from datetime import date
-import os
+import re
 
 def generate_quiz():
     prompt = (
-    "Create a simple true/false (O/X) quiz about environmental sustainability.\n"
-    "Question must be under 15 words.\n"
-    "Answer must be “true” or “false”.\n"
-    "Explanation must be one complete sentence (under 15 words) that starts with the key concept and clearly states the reason.  \n"
-    "  e.g., “Deforestation causes loss of wildlife habitats.”\n"
-    "Format:\n"
-    "Question: ...\n"
-    "Answer: true/false\n"
-    "Explanation: ...\n"
-)
+        "Create ONE simple true/false (O/X) quiz about environmental sustainability.\n"
+        "Only return one quiz question.\n"
+        "Format exactly as below:\n"
+        "Question: ...\n"
+        "Answer: true/false\n"
+        "Explanation: ...\n"
+        "Do not include numbering or markdown formatting. No ** or # or any extra formatting.\n"
+        "Example:\n"
+        "Question: Recycling helps reduce waste.\n"
+        "Answer: true\n"
+        "Explanation: Recycling reduces landfill waste.\n"
+    )
 
     response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt)
-    lines = response.text.strip().split("\n")
+    
+    # 🧠 응답 본문 꺼내기
+    text = response.text.strip()
+    print("🧠 Gemini raw response:\n", text)
+
+    # 🔍 정규식으로 안전하게 파싱
+    match_q = re.search(r"Question:\s*(.+)", text)
+    match_a = re.search(r"Answer:\s*(true|false)", text, re.IGNORECASE)
+    match_e = re.search(r"Explanation:\s*(.+)", text)
+
     data = {}
-    for line in lines:
-        if line.startswith("Question:"):
-            data["question"] = line.replace("Question:", "").strip()
-        elif line.startswith("Answer:"):
-            data["answer"] = line.replace("Answer:", "").strip().lower()
-        elif line.startswith("Explanation:"):
-            data["explanation"] = line.replace("Explanation:", "").strip()
+    if match_q: data["question"] = match_q.group(1).strip()
+    if match_a: data["answer"] = match_a.group(1).strip().lower()
+    if match_e: data["explanation"] = match_e.group(1).strip()
+
     return data
 
 def get_today_quiz():
     quiz = generate_quiz()
+    print("✅ 퀴즈 내용:", quiz)
 
-    # Check if all required keys exist to avoid KeyError
     if not all(k in quiz for k in ("question", "answer", "explanation")):
-        print("Missing keys in Gemini response:", quiz)
+        print("❌ Missing keys in Gemini response:", quiz)
         quiz = {
             "question": " Failed to load quiz.",
             "answer": "true",
@@ -40,6 +47,8 @@ def get_today_quiz():
         }
 
     return quiz
+
+
 
 
 
