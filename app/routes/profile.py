@@ -88,7 +88,6 @@ def get_profile_image():
         "httpStatus": "OK",
         "success": True,
         "result": f"https://ecovel.site/uploads/faces/{user_id}/face.jpg",
-,
         "error": None
     }
     return Response(
