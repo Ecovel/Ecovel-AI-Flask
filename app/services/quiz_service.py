@@ -2,14 +2,19 @@ import google.generativeai as genai
 from datetime import date
 import os
 
-quiz_cache = {}  # { "YYYY-MM-DD": {question, answer, explanation} }
-
 def generate_quiz():
     prompt = (
-        "Create a simple true/false (O/X) quiz about environmental sustainability.\n"
-        "The question must be under 15 words. Explanation under 15 words.\n"
-        "Format:\nQuestion: ...\nAnswer: true/false\nExplanation: ..."
-    )
+    "Create a simple true/false (O/X) quiz about environmental sustainability.\n"
+    "Question must be under 15 words.\n"
+    "Answer must be “true” or “false”.\n"
+    "Explanation must be one complete sentence (under 15 words) that starts with the key concept and clearly states the reason.  \n"
+    "  e.g., “Deforestation causes loss of wildlife habitats.”\n"
+    "Format:\n"
+    "Question: ...\n"
+    "Answer: true/false\n"
+    "Explanation: ...\n"
+)
+
     response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt)
     lines = response.text.strip().split("\n")
     data = {}
@@ -23,28 +28,19 @@ def generate_quiz():
     return data
 
 def get_today_quiz():
-    today = str(date.today())
-    if today not in quiz_cache:
-        quiz = generate_quiz()
+    quiz = generate_quiz()
 
-        # Check if all required keys exist to avoid KeyError
-        if not all(k in quiz for k in ("question", "answer", "explanation")):
-            print("Missing keys in Gemini response:", quiz)
-            quiz = {
-                "question": " Failed to load quiz.",
-                "answer": "true",
-                "explanation": "Gemini response parsing failed."
-            }
+    # Check if all required keys exist to avoid KeyError
+    if not all(k in quiz for k in ("question", "answer", "explanation")):
+        print("Missing keys in Gemini response:", quiz)
+        quiz = {
+            "question": " Failed to load quiz.",
+            "answer": "true",
+            "explanation": "Gemini response parsing failed."
+        }
 
-        quiz_cache[today] = quiz
-
-    return quiz_cache[today]
+    return quiz
 
 
-def check_answer(user_answer: str):
-    quiz = get_today_quiz()
-    is_correct = user_answer.strip().lower() == quiz["answer"]
-    return {
-        "correct": is_correct,
-        "explanation": quiz["explanation"]
-    }
+
+
