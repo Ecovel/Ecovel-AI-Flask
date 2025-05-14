@@ -87,7 +87,7 @@ def get_profile_image():
     payload = {
         "httpStatus": "OK",
         "success": True,
-        "result": f"http://34.47.125.178:5000/uploads/faces/{user_id}/face.jpg"
+        "result": f"https://ecovel.site/uploads/faces/{user_id}/face.jpg",
 ,
         "error": None
     }
