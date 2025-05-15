@@ -31,15 +31,14 @@ def verify():
         mission_encodings = face_recognition.face_encodings(mission_image)
 
         if not face_encodings or not mission_encodings:
-            return jsonify({
-                "result": "fail",
-                "reason": "no face detected",
-                "face_detected": bool(face_encodings),
-                "mission_face_detected": bool(mission_encodings)
-            })
-
+              return jsonify({
+        "result": "fail",
+        "reason": "no face detected",
+        "face_detected": len(face_encodings) > 0,
+        "mission_face_detected": len(mission_encodings) > 0
+    })
         distance = np.linalg.norm(face_encodings[0] - mission_encodings[0])
-        same_person = distance < 0.8  # 기준값
+        same_person = distance < 0.4  # 기준값
 
         # Gemini 처리
         encoded_image = base64.b64encode(image_bytes).decode("utf-8")
@@ -79,4 +78,4 @@ def verify():
             })
 
     except Exception as e:
-        return jsonify({"result": "fail", "error": str(e)})
+        return jsonify({"result": "fail"})
