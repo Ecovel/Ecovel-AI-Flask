@@ -6,13 +6,13 @@ from app.routes.profile import profile_bp
 from app.routes.mission import mission_bp
 from app.routes.quiz import quiz_bp
 
-# Gemini 인증 관련 import 추가
+# Added import for Gemini authentication
 from google.auth import load_credentials_from_file
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 
-# 커스텀 JSON Provider 설정 (한글 깨짐 방지 + 키 순서 유지)
+# Custom JSON Provider (to prevent Korean character corruption + preserve key order)
 class CustomJSONProvider(DefaultJSONProvider):
     def dumps(self, obj, **kwargs):
         kwargs.setdefault("ensure_ascii", False)
@@ -26,31 +26,29 @@ def create_app():
     app.config["JSON_SORT_KEYS"] = False
     
     CORS(app, resources={
-    r"/*": {
-        "origins": [
-            "http://localhost:3000",
-            "https://ecovel-seven.vercel.app"
-        ]
-    }
-})
+        r"/*": {
+            "origins": [
+                "http://localhost:3000",
+                "https://ecovel-seven.vercel.app"
+            ]
+        }
+    })
 
-
-    # ✅ Gemini 인증 안전하게 분기 처리
+    # Secure branching logic for Gemini authentication
     cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     api_key = os.getenv("GEMINI_API_KEY")
 
     if cred_path and os.path.exists(cred_path) and not api_key:
-        # 서비스 계정만 있는 경우에만 credentials 사용
+        # Use credentials only when a service account is available
         creds, _ = load_credentials_from_file(
             cred_path, scopes=["https://www.googleapis.com/auth/cloud-platform"]
         )
         genai.configure(credentials=creds)
     elif api_key:
-        # API 키가 있으면 그걸 우선 사용
+        # If API key is available, use it with priority
         genai.configure(api_key=api_key)
     else:
-        raise ValueError("❌ Gemini 인증 정보가 없습니다! .env에 API 키나 서비스 계정 경로를 넣어주세요.")
-
+        raise ValueError("No Gemini credentials found! Please set an API key or service account path in .env.")
 
     @app.route("/", methods=["GET"])
     def health_check():
@@ -59,17 +57,18 @@ def create_app():
             "message": "Ecovel-AI-ML API is running"
         }), 200
     
-    # 이미지 정적 서빙 라우터 추가 
+    # Add static image serving route
     @app.route("/uploads/faces/<user_id>/<filename>")
     def serve_uploaded_image(user_id, filename):
         return send_from_directory(f"uploads/faces/{user_id}", filename)
     
-    # 프로필 블루프린트 등록 (/users/profile-image)
+    # Register profile blueprint (/users/profile-image)
     app.register_blueprint(profile_bp, url_prefix="/users")
 
-    # 미션 블루프린트 등록 (/ai/...)
+    # Register mission blueprint (/ai/...)
     app.register_blueprint(mission_bp, url_prefix="/ai")
 
+    # Register quiz blueprint (/quiz)
     app.register_blueprint(quiz_bp, url_prefix="/quiz")
 
     return app
