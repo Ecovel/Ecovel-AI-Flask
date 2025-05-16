@@ -18,11 +18,11 @@ def generate_quiz():
 
     response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt)
     
-    # 🧠 응답 본문 꺼내기
+    # Extract response text
     text = response.text.strip()
-    print("🧠 Gemini raw response:\n", text)
+    print("Gemini raw response:\n", text)
 
-    # 🔍 정규식으로 안전하게 파싱
+    # Safely parse using regex
     match_q = re.search(r"Question:\s*(.+)", text)
     match_a = re.search(r"Answer:\s*(true|false)", text, re.IGNORECASE)
     match_e = re.search(r"Explanation:\s*(.+)", text)
@@ -36,20 +36,14 @@ def generate_quiz():
 
 def get_today_quiz():
     quiz = generate_quiz()
-    print("✅ 퀴즈 내용:", quiz)
+    print("Quiz content:", quiz)
 
     if not all(k in quiz for k in ("question", "answer", "explanation")):
-        print("❌ Missing keys in Gemini response:", quiz)
+        print("Missing keys in Gemini response:", quiz)
         quiz = {
-            "question": " Failed to load quiz.",
+            "question": "Failed to load quiz.",
             "answer": "true",
             "explanation": "Gemini response parsing failed."
         }
 
     return quiz
-
-
-
-
-
-

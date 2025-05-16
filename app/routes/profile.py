@@ -15,13 +15,13 @@ def upload_profile_image():
     user_id = request.form.get("userId")
     file    = request.files.get("file")
 
-    # 실패: userId 없거나 파일 없음 혹은 AI 판별 실패
+    # Failure: missing userId or file or AI prediction failed
     if not user_id or not file:
         payload = {
             "httpStatus": "OK",
             "success": False,
             "result": None,
-            "error": "사용자를 찾을 수 없습니다."
+            "error": "User not found."
         }
         return Response(
             json.dumps(payload, ensure_ascii=False),
@@ -29,7 +29,7 @@ def upload_profile_image():
             content_type="application/json; charset=utf-8"
         )
 
-    # AI 얼굴 판별
+    # AI face prediction
     img = Image.open(io.BytesIO(file.read())).convert("RGB")
     arr = preprocess_image(img)
     class_id, confidence = predict_face(model, arr)
@@ -38,7 +38,7 @@ def upload_profile_image():
             "httpStatus": "OK",
             "success": False,
             "result": None,
-            "error": "사용자를 찾을 수 없습니다."
+            "error": "User not found."
         }
         return Response(
             json.dumps(payload, ensure_ascii=False),
@@ -46,7 +46,7 @@ def upload_profile_image():
             content_type="application/json; charset=utf-8"
         )
 
-    # 성공
+    # Success
     save_dir = os.path.join("uploads", "faces", user_id)
     os.makedirs(save_dir, exist_ok=True)
     img.save(os.path.join(save_dir, "face.jpg"))
@@ -69,13 +69,13 @@ def get_profile_image():
     user_id = request.args.get("userId")
     img_path = os.path.join("uploads", "faces", user_id or "", "face.jpg")
 
-    # 실패: userId 없거나 파일이 없으면
+    # Failure: userId not provided or file not found
     if not user_id or not os.path.exists(img_path):
         payload = {
             "httpStatus": "OK",
             "success": False,
             "result": None,
-            "error": "등록된 얼굴 이미지가 없습니다."
+            "error": "No registered face image found."
         }
         return Response(
             json.dumps(payload, ensure_ascii=False),
@@ -83,7 +83,7 @@ def get_profile_image():
             content_type="application/json; charset=utf-8"
         )
 
-    # 성공
+    # Success
     payload = {
         "httpStatus": "OK",
         "success": True,
